@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass
 from subprocess import PIPE, run
 from shutil import which
@@ -9,9 +10,9 @@ from typing import Any
 from config import Config
 from models.speedtest_models import SpeedtestResult
 from models.iperf_models import IperfResult
+from models.ping_models import PingResult
 
 logger = logging.getLogger(__name__)
-
 
 def _parse_and_validate_flags(flag_string: str, allowed_flags: set[str], tool_name: str) -> list[str]:
     if not flag_string.strip():
@@ -34,12 +35,11 @@ def _parse_and_validate_flags(flag_string: str, allowed_flags: set[str], tool_na
 
 
 class ProberInterface:
-    def probe(self) -> SpeedtestResult | IperfResult | dict[str, Any]:
+    def probe(self) -> SpeedtestResult | IperfResult | dict[str, Any] | PingResult:
         raise NotImplementedError
 
     def ready(self) -> bool:
         return False
-
 
 class SpeedtestProber(ProberInterface):
     PROG_NAME: str | None = Config.SPEEDTEST_CMD
@@ -178,3 +178,52 @@ class IperfProber(ProberInterface):
 
     def ready(self) -> bool:
         return bool(self.PROG_NAME and self.TARGET_HOST)
+
+class PingProber(ProberInterface):
+    COUNT = Config.PING_COUNT
+    HOST = Config.PING_TARGET_HOST
+    OPTS = [Config.PING_CMD, "-c", str(COUNT), "-q", HOST]
+    PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% packet loss")
+    LATENCY_REGEX = re.compile(r"round-trip min/avg/max(?:stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?) ms")
+    HOST_IP_REGEX = re.compile(r"PING (\S+) \((\S+)\)")
+
+    def __run(self):
+        proc = run(self.OPTS, stdout=PIPE, stderr=PIPE)
+        if proc.returncode == 0:
+            return proc.stdout
+        raise Exception(f"ping process returned error (return code {proc.returncode}, {proc.stderr})")
+    
+    def __parse_output(self, output: bytes) -> PingResult:
+        lines = output.decode().splitlines()
+
+        if len(lines) < 3:
+            raise Exception(f"unexpected ping output: {output}")
+        
+        host_line = lines[0]
+        packet_line = lines[-2]
+        stats_line = lines[-1]
+        
+        host_ip_match = self.HOST_IP_REGEX.search(host_line)
+        packet_loss_match = self.PACKET_LOSS_REGEX.search(packet_line)
+        latency_match = self.LATENCY_REGEX.search(stats_line)
+        if not packet_loss_match or not latency_match or not host_ip_match:
+            raise Exception(f"unexpected ping output: {output}")
+        
+        return PingResult(
+            packet_loss=float(packet_loss_match.group(1)),
+            min_latency=float(latency_match.group(1)),
+            avg_latency=float(latency_match.group(2)),
+            max_latency=float(latency_match.group(3)),
+            host=host_ip_match.group(1),
+            ip=host_ip_match.group(2),
+        )
+
+    def probe(self) -> PingResult:
+        output = self.__run()
+        return self.__parse_output(output)
+    
+    def ready(self) -> bool:
+        if Config.PING_CMD is not None and Config.PING_TARGET_HOST is not None and Config.PING_COUNT > 0:
+            return True
+        logger.warning("Ping command, target host or count not properly configured. Not ready.")
+        return False

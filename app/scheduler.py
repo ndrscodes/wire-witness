@@ -61,5 +61,23 @@ def create_scheduler() -> BaseScheduler | None:
             raise Exception("Speedtest handler not ready")
     else:
         logger.warning("Not scheduling speedtest handler - no schedule defined")
+    
+    if config.Config.PING_SCHEDULE:
+        ping_handler = handler.TaskHandler(prober=probers.PingProber())
+        ping_handler.subscribe(handler.LogHandler())
+        ping_handler.subscribe(handler.InfluxHandler(influx_client))
+        if ping_handler.ready():
+            scheduler.add_job(
+                ping_handler.execute,
+                CronTrigger.from_crontab(config.Config.PING_SCHEDULE),
+                max_instances=1,
+                misfire_grace_time=config.Config.MISFIRE_GRACE_TIME,
+                name="ping measurement"
+            )
+        else:
+            logger.warning("Not scheduling ping handler - handler not ready")
+            raise Exception("Ping handler not ready")
+    else:
+        logger.warning("Not scheduling ping handler - no schedule defined")
 
     return scheduler

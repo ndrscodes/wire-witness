@@ -112,6 +112,25 @@ Examples:
         help="Accept speedtest license terms (default: SPEEDTEST_LICENSE_ACCEPT env var)",
     )
 
+    ping_group = parser.add_argument_group("ping Settings")
+    ping_group.add_argument(
+        "--ping-cmd",
+        help="Path to ping binary (default: PING_CMD env var)",
+    )
+    ping_group.add_argument(
+        "--ping-host",
+        help="Target host for ping tests (default: PING_TARGET_HOST env var)",
+    )
+    ping_group.add_argument(
+        "--ping-count",
+        type=int,
+        help="Number of ping packets to send (default: PING_COUNT env var or 5)",
+    )
+    ping_group.add_argument(
+        "--ping-schedule",
+        help="Cron schedule for ping tests (default: PING_CRON_SCHEDULE env var)",
+    )
+
     # Scheduler configuration arguments
     sched_group = parser.add_argument_group("Scheduler Configuration")
     sched_group.add_argument(

@@ -1,5 +1,6 @@
 import os
 import json
+from shutil import which
 
 # I think more config formats should allow stuff like "yeah" or "certainly" as "true". Just makes config more friendly :)
 YES_VALUES = ["true", "1", "yes", "y", "certainly", "yeah", "yup"]
@@ -47,11 +48,11 @@ class Config:
         else None
     )
 
-    IPERF_CMD: str | None = os.environ.get("IPERF_CMD") or None
+    IPERF_CMD: str | None = os.environ.get("IPERF_CMD") or which("iperf3")
     IPERF_TARGET_HOST: str | None = os.environ.get("IPERF_TARGET_HOST")
     IPERF_DURATION: int = int(os.environ.get("IPERF_DURATION", "10"))
 
-    SPEEDTEST_CMD: str | None = os.environ.get("SPEEDTEST_CMD") or None
+    SPEEDTEST_CMD: str | None = os.environ.get("SPEEDTEST_CMD") or which("speedtest")
     ACCEPT_SPEEDTEST_LICENSE: bool = True if SPEEDTEST_LIC_ACCEPT_ENV in os.environ and os.environ.get(SPEEDTEST_LIC_ACCEPT_ENV, "").lower() in YES_VALUES else False
     ACCEPT_SPEEDTEST_GDPR: bool = True if SPEEDTEST_GDPR_ACCEPT_ENV in os.environ and os.environ.get(SPEEDTEST_GDPR_ACCEPT_ENV, "").lower() in YES_VALUES else False
 
@@ -61,6 +62,11 @@ class Config:
     MAX_RETRY_TIME = int(os.environ.get("MAX_RETRY_TIME", str(60 * 60 * 24 * 1000)))
     MAX_RETRY_DELAY = int(os.environ.get("MAX_RETRY_DELAY", "120000"))
     RETRY_INTERVAL = int(os.environ.get("RETRY_INTERVAL", "5000"))
+
+    PING_CMD: str | None = os.environ.get("PING_CMD") or which("ping")
+    PING_COUNT: int = int(os.environ.get("PING_COUNT", "5"))
+    PING_TARGET_HOST: str | None = os.environ.get("PING_TARGET_HOST")
+    PING_SCHEDULE: str | None = os.environ.get("PING_CRON_SCHEDULE")
 
     @classmethod
     def from_cli_args(cls, args) -> type["Config"]:

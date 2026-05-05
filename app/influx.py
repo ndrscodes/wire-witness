@@ -1,5 +1,6 @@
 from models.iperf_models import IperfResult
 from models.speedtest_models import SpeedtestResult
+from models.ping_models import PingResult
 from influxdb_client_3 import InfluxDBClient3, Point, write_client_options, WriteOptions
 import logging
 from config import Config
@@ -12,11 +13,13 @@ class InfluxClient:
         wco = write_client_options(write_options=opts)
         self.client = InfluxDBClient3(host, organization, database, token, write_client_options=wco)
 
-    def push(self, data: IperfResult | SpeedtestResult):
+    def push(self, data: IperfResult | SpeedtestResult | PingResult):
         if isinstance(data, IperfResult):
             points = iperf_to_point(data)
         elif isinstance(data, SpeedtestResult):
             points = speedtest_to_point(data)
+        elif isinstance(data, PingResult):
+            points = ping_to_point(data)
         else:
             logger.warning(f"received unknown data type: {type(data).__name__}")
             return
@@ -130,3 +133,15 @@ def iperf_to_point(data: IperfResult) -> list[Point]:
             records.append(stream_point)
 
     return records
+
+def ping_to_point(data: PingResult) -> Point:
+    point = (
+        Point("ping_result")
+        .tag("host", data.host)
+        .tag("ip", data.ip)
+        .field("packet_loss", data.packet_loss)
+        .field("latency_avg", data.avg_latency)
+        .field("latency_min", data.min_latency)
+        .field("latency_max", data.max_latency)
+    )
+    return point

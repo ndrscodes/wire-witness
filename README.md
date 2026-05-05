@@ -75,6 +75,15 @@ If you provide both, the command-line arguments will take priority.
 | **Command Path**| `IPERF_CMD` | `--iperf-cmd` | The path to your local iperf3 binary. | Uses the installed `iperf3` binary |
 | **Extra Flags** | `IPERF_ADDITIONAL_FLAGS` | *N/A* | Pass extra flags to iperf3. | *None* |
 
+### ping Settings
+
+| Configuration | Environment Variable | Command-Line Argument | Description | Default |
+| :--- | :--- | :--- | :--- | :--- |
+| **Target Host** | `PING_TARGET_HOST` | `--ping-host` | The IP address or hostname you want to ping. | *None* |
+| **Schedule** | `PING_CRON_SCHEDULE` | `--ping-schedule` | When to run the test (cron syntax). | *None* |
+| **Count** | `PING_COUNT` | `--ping-count` | How many ping packets to send each time. | `5` |
+| **Command Path**| `PING_CMD` | `--ping-cmd` | The path to your local ping binary. | Uses the installed `ping` binary |
+
 ### Speedtest Settings
 
 | Configuration | Environment Variable | Command-Line Argument | Description | Default |
