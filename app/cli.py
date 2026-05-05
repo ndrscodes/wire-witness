@@ -54,7 +54,19 @@ Examples:
         "--max-retry-time",
         default=None,
         type=int,
-        help="Maximum retry time for failed tests in seconds (default: MAX_RETRY_TIME env var or 60 * 60 * 24)",
+        help="Maximum retry time (ms) for failed tests in seconds (default: MAX_RETRY_TIME env var or 60 * 60 * 24 * 1000)",
+    )
+    db_group.add_argument(
+        "--max-retry-delay",
+        default=None,
+        type=int,
+        help="Maximum delay (ms) between retries (default: MAX_RETRY_DELAY env var or 120000)",
+    )
+    db_group.add_argument(
+        "--retry-interval",
+        default=None,
+        type=int,
+        help="Maximum retry time (ms) for failed tests in seconds (default: RETRY_INTERVAL env var or 5000)",
     )
 
     # iperf3 arguments

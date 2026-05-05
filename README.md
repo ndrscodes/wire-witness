@@ -61,7 +61,9 @@ If you provide both, the command-line arguments will take priority.
 | **Database** | `INFLUXDB_DATABASE` | `--influx-database` | The target bucket or database for your network metrics. | `wirewitness` |
 | **Auth Token** | `INFLUXDB_TOKEN` | `--influx-token` | Your secret authentication token. | *None* |
 | **Token File** | `INFLUXDB_TOKEN_FILE` | `--influx-token-file` | Path to a file containing your auth token. | `/run/secrets/influx-admin-token` |
-| **Max Retry** | `MAX_RETRY_TIME` | `--max-retry-time` | How long (in seconds) to keep trying if the database is temporarily unreachable. | `86400` (24 hours) |
+| **Max Retry** | `MAX_RETRY_TIME` | `--max-retry-time` | How long (in milliseconds) to keep trying if the database is temporarily unreachable. | `86400000` (24 hours) |
+| **Max Delay** | `MAX_RETRY_DELAY` | `--max-retry-delay` | How long (in milliseconds) to wait before retrying if the database is temporarily unreachable. | `120000` (2 minutes) |
+| **Retry Interval** | `RETRY_INTERVAL` | `--retry-interval` | How often (in milliseconds) to retry if the database is temporarily unreachable. | `60` (1 minute) |
 
 ### iperf3 Settings
 

@@ -2,12 +2,13 @@ from models.iperf_models import IperfResult
 from models.speedtest_models import SpeedtestResult
 from influxdb_client_3 import InfluxDBClient3, Point, write_client_options, WriteOptions
 import logging
+from config import Config
 
 logger = logging.getLogger(__name__)
 
 class InfluxClient:
     def __init__(self, host, organization, database, token):
-        opts = WriteOptions(retry_interval=5000, max_retry_delay=120000, max_retry_time=60 * 60 * 24)
+        opts = WriteOptions(retry_interval=Config.RETRY_INTERVAL, max_retry_delay=Config.MAX_RETRY_DELAY, max_retry_time=Config.MAX_RETRY_TIME)
         wco = write_client_options(write_options=opts)
         self.client = InfluxDBClient3(host, organization, database, token, write_client_options=wco)
 

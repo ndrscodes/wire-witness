@@ -58,7 +58,9 @@ class Config:
     IPERF_ADDITIONAL_FLAGS: str = os.environ.get("IPERF_ADDITIONAL_FLAGS", "")
     SPEEDTEST_ADDITIONAL_FLAGS: str = os.environ.get("SPEEDTEST_ADDITIONAL_FLAGS", "")
     
-    MAX_RETRY_TIME = int(os.environ.get("MAX_RETRY_TIME", str(60 * 60 * 24)))
+    MAX_RETRY_TIME = int(os.environ.get("MAX_RETRY_TIME", str(60 * 60 * 24 * 1000)))
+    MAX_RETRY_DELAY = int(os.environ.get("MAX_RETRY_DELAY", "120000"))
+    RETRY_INTERVAL = int(os.environ.get("RETRY_INTERVAL", "5000"))
 
     @classmethod
     def from_cli_args(cls, args) -> type["Config"]:
@@ -76,6 +78,12 @@ class Config:
                 load_token_from_file(cls.INFLUXDB_TOKEN_FILE)
                 or os.environ.get("INFLUXDB_TOKEN")
             )
+        if args.max_retry_time is not None:
+            cls.MAX_RETRY_TIME = args.max_retry_time
+        if args.max_retry_delay is not None:
+            cls.MAX_RETRY_DELAY = args.max_retry_delay
+        if args.retry_interval is not None:
+            cls.RETRY_INTERVAL = args.retry_interval
 
         if args.iperf_cmd is not None:
             cls.IPERF_CMD = args.iperf_cmd
