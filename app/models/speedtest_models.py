@@ -181,7 +181,7 @@ class SpeedtestResult:
             ping=PingInfo.from_dict(data["ping"]),
             download=DownloadInfo.from_dict(data["download"]),
             upload=UploadInfo.from_dict(data["upload"]),
-            packet_loss=data["packetLoss"],
+            packet_loss=float(data["packetLoss"]),
             isp=data["isp"],
             interface=InterfaceInfo.from_dict(data["interface"]),
             server=ServerInfo.from_dict(data["server"]),
