@@ -2,8 +2,6 @@
 
 WireWitness is an automated network performance monitoring tool. It periodically runs network tests and pushes the results to a time-series database so you can visualize exactly what's happening, and when.
 
----
-
 ## Why WireWitness?
 
 WireWitness solves the problem of "blind spots" in your network monitoring by doing the heavy lifting for you.
@@ -14,8 +12,6 @@ Finally, WireWitness is designed to be highly flexible and lightweight.
 You can run it locally on a home server, or install it at a remote site and just have it report to your central database. 
 
 Note that `speedtest` mentioned here is the official Ookla Speedtest CLI, not the community `speedtest-cli` tool. Both tools behave differently and create different output, so be sure to use the official Ookla tool if setting up locally. The docker image already uses the correct tool.
-
----
 
 ## Getting Started: How to Run WireWitness
 
@@ -51,8 +47,6 @@ python main.py
 ```
 
 Hint: You can always run `python main.py --dry-run` to validate your configuration and ensure everything looks good without actually starting the scheduler.
-
----
 
 ## Configuration & Options
 
@@ -100,8 +94,6 @@ A few extra knobs and dials to help you manage the application.
 | **Log Level** | *N/A* | `--log-level` | How chatty the application should be (`DEBUG`, `INFO`, `WARNING`, `ERROR`). | `INFO` |
 | **Dry Run** | *N/A* | `--dry-run` | Validates your config and exits peacefully without starting the scheduler. | `False` |
 
----
-
 ## Contributing
 
 I appreciate your interest in helping improve this tool. 
@@ -110,13 +102,9 @@ WireWitness is built on the spirit of open source and community collaboration.
 If you encounter any bugs or have ideas for new features, please feel free to open an issue or submit a pull request. 
 The goal is simply to provide a helpful resource for anyone trying to better understand their network.
 
----
-
 ## Planned Features
 
 * Local SQL storage for metrics
 * Local API to query metrics
 * Optional Prometheus integration
 * Custom local dashboard for displaying the most relevant metrics
-
-```
