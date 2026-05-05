@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from subprocess import PIPE, run, _CMD
+from subprocess import PIPE, run
 from shutil import which
 from typing import Any
 
