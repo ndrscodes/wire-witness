@@ -1,0 +1,68 @@
+services:
+  witness:
+    build: .
+    container_name: wire_witness
+    depends_on:
+      - influx
+    environment:
+      - INFLUXDB_HOST=http://influx:8181
+      - INFLUXDB_ORG=wirewitness
+      - INFLUXDB_DATABASE=wirewitness
+      - INFLUXDB_TOKEN_FILE=/run/secrets/influx-admin-token
+      - IPERF_CMD=/usr/bin/iperf3
+      - IPERF_TARGET_HOST=127.0.0.1
+      - IPERF_DURATION=10
+      - SPEEDTEST_CMD=/app/speedtest
+      - IPERF_CRON_SCHEDULE=* * * * *
+      - SPEEDTEST_CRON_SCHEDULE=* * * * *
+      - SPEEDTEST_GDPR_ACCEPT=yes
+      - SPEEDTEST_LICENSE_ACCEPT=yes
+      - MISFIRE_GRACE_TIME=0
+    secrets:
+      - influx-admin-token
+    networks:
+      - witness
+  influx:
+    image: influxdb:3-core
+    container_name: influxdb
+    networks:
+      - witness
+      - grafana
+    ports:
+      - 8181:8181
+    command:
+      - influxdb3
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --plugin-dir=/var/lib/influxdb3/plugins
+      - --admin-token-file=/run/secrets/influx-admin-token
+    healthcheck:
+      test: ["CMD", "curl", "influx:8181"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - type: bind
+        source: ~/.influxdb3/core/data
+        target: /var/lib/influxdb3/data
+      - type: bind
+        source: ~/.influxdb3/core/plugins
+        target: /var/lib/influxdb3/plugins
+    secrets:
+      - influx-admin-token
+  grafana:
+    image: grafana/grafana:13.1.0-25295570271
+    container_name: grafana
+    networks:
+      - grafana
+    ports:
+      - 3000:3000
+networks:
+  witness: {}
+  grafana: {}
+secrets:
+  influx-admin-token:
+    file: ./admin-token.json
