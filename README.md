@@ -18,8 +18,6 @@ Note that `speedtest` mentioned here is the official Ookla Speedtest CLI, not th
 ### Option 1: Docker
 Docker compose is the absolute fastest way to get everything running, as it spins up WireWitness, an InfluxDB v3 instance, and Grafana all at once.
 The docker image in this repository comes with the `speedtest` CLI and `iperf3` already installed, so you don't have to worry about that.
-A current drawback of this is that the `docker-compose.example.yml` currently does not automatically set up the connection between Grafana and Influx.
-You will have to set that up manually as of now.
 
 ```bash
 docker-compose up -d

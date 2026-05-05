@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB_v3_SQL
+    type: influxdb
+    access: proxy
+    url: http://influx:8181
+    jsonData:
+      version: SQL
+      dbName: wirewitness
+      httpMode: POST
+      insecureGrpc: True
+    secureJsonData:
+      token: 'apiv3_super_awesome_and_secret_token'
