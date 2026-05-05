@@ -27,6 +27,7 @@ def speedtest_to_point(data: SpeedtestResult) -> list[Point]:
 
     result_point = (
         Point("speedtest_result")
+        .time(data.timestamp)
         .tag("type", data.type)
         .tag("isp", data.isp)
         .tag("country", data.server.country)
