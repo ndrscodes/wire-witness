@@ -15,8 +15,15 @@ services:
       - SPEEDTEST_CMD=/speedtest
       - IPERF_CRON_SCHEDULE=* * * * *
       - SPEEDTEST_CRON_SCHEDULE=* * * * *
+      - PING_CRON_SCHEDULE=* * * * *
+      - PING_TARGET_HOST=google.com
       - SPEEDTEST_GDPR_ACCEPT=yes
       - SPEEDTEST_LICENSE_ACCEPT=yes
+    command: 
+      - --log-level=DEBUG
+      - --config-file=/app/config.yaml
+    volumes:
+      - ./config.example.yaml:/app/config.yaml:ro
     secrets:
       - influx-admin-token
     networks:

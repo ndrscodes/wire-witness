@@ -1,7 +1,8 @@
 import sys
+import os
 import logging
 from cli import parse_args
-from config import Config
+from config import Config, ConfigLoader
 from scheduler import create_scheduler
 
 logging.basicConfig(
@@ -10,28 +11,27 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 
+logger = logging.getLogger(__name__)
+
 def main():
     args = parse_args()
     
     if args.log_level:
         logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
+
+    config = Config()
+    config_file = args.config_file or os.environ.get("WIREWITNESS_CONFIG_FILE")
+    if config_file:
+        logger.info("loading config from file %s", config_file)
+        config = ConfigLoader.load_file(config_file)
     
-    Config.from_cli_args(args)
+    config.load(args)
     
-    errors = Config.validate()
-    if errors:
-        for error in errors:
-            logging.error("Configuration error: %s", error)
+    scheduler = create_scheduler(config)
+    if scheduler == None:
+        logger.error("unable to create scheduler")
         sys.exit(1)
-    
-    if args.dry_run:
-        logging.info("Configuration valid. Exiting (--dry-run mode)")
-        sys.exit(0)
-    
-    scheduler = create_scheduler()
-    if scheduler is None:
-        sys.exit(1)
-    
+
     scheduler.start()
 
 if __name__ == "__main__":

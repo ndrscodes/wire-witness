@@ -7,7 +7,7 @@ from subprocess import PIPE, run
 from shutil import which
 from typing import Any
 
-from config import Config
+from config import Config, IPerfConfig, PingConfig, SpeedtestConfig
 from models.speedtest_models import SpeedtestResult
 from models.iperf_models import IperfResult
 from models.ping_models import PingResult
@@ -37,13 +37,8 @@ def _parse_and_validate_flags(flag_string: str, allowed_flags: set[str], tool_na
 class ProberInterface:
     def probe(self) -> SpeedtestResult | IperfResult | dict[str, Any] | PingResult:
         raise NotImplementedError
-
-    def ready(self) -> bool:
-        return False
-
-class SpeedtestProber(ProberInterface):
-    PROG_NAME: str | None = Config.SPEEDTEST_CMD
     
+class SpeedtestProber(ProberInterface):
     SPEEDTEST_ALLOWED_FLAGS = {
         # Server selection
         "-s", "--server-id",
@@ -62,28 +57,33 @@ class SpeedtestProber(ProberInterface):
         "-v",
         "--output-header",
     }
+
+    def __init__(self, config: SpeedtestConfig):
+        self.cmd = config.cmd
+        self.accept_gdpr = config.accept_gdpr
+        self.accept_license = config.accept_license
+        self.additional_flags = config.additional_flags
     
-    @classmethod
-    def __get_cli_opts(cls) -> list[str]:
+    def __get_cli_opts(self) -> list[str]:
         opts = ["--format=json"]
-        if Config.ACCEPT_SPEEDTEST_GDPR:
+        if self.accept_gdpr:
             opts.append("--accept-gdpr")
-        if Config.ACCEPT_SPEEDTEST_LICENSE:
+        if self.accept_license:
             opts.append("--accept-license")
         
         additional = _parse_and_validate_flags(
-            Config.SPEEDTEST_ADDITIONAL_FLAGS, cls.SPEEDTEST_ALLOWED_FLAGS, "speedtest"
+            self.additional_flags, self.SPEEDTEST_ALLOWED_FLAGS, "speedtest"
         )
         opts.extend(additional)
         
         return opts
 
     def __run(self):
-        if self.PROG_NAME is None:
+        if self.cmd is None:
             raise Exception("Speedtest command not configured")
         
         logger.info("Starting speedtest")
-        proc = run([self.PROG_NAME] + self.__get_cli_opts(), stdout=PIPE, stderr=PIPE)
+        proc = run([self.cmd] + self.__get_cli_opts(), stdout=PIPE, stderr=PIPE)
         if proc.returncode == 0:
             return proc.stdout
         
@@ -94,18 +94,7 @@ class SpeedtestProber(ProberInterface):
         data = json.loads(stdout)
         return SpeedtestResult.from_dict(data)
 
-    def ready(self) -> bool:
-        if not Config.ACCEPT_SPEEDTEST_LICENSE or not Config.ACCEPT_SPEEDTEST_GDPR:
-            logger.warning("Speedtest license and/or GDPR not accepted. Not ready.")
-            return False
-        return self.PROG_NAME is not None
-
-
 class IperfProber(ProberInterface):
-    PROG_NAME = Config.IPERF_CMD
-    TARGET_HOST = Config.IPERF_TARGET_HOST
-    DURATION = Config.IPERF_DURATION
-    
     IPERF_ALLOWED_FLAGS = {
         # Common flags
         "-p", "--port",
@@ -150,14 +139,20 @@ class IperfProber(ProberInterface):
         "--dont-fragment",
     }
 
+    def __init__(self, config: IPerfConfig):
+        self.cmd = config.cmd
+        self.additional_flags = config.additional_flags
+        self.duration = config.duration
+        self.host = config.target_host
+
     def __run(self, host: str | None = None):
-        host = host or self.TARGET_HOST
-        logger.info("Starting iperf (host=%s, duration=%ds)", host, self.DURATION)
+        host = self.host
+        logger.info("Starting iperf (host=%s, duration=%ds)", host, self.duration)
         
-        base_cmd = [self.PROG_NAME, "-c", host, "-t", str(self.DURATION), "--json"]
+        base_cmd = [self.cmd, "-c", host, "-t", str(self.duration), "--json"]
         
         additional = _parse_and_validate_flags(
-            Config.IPERF_ADDITIONAL_FLAGS, self.IPERF_ALLOWED_FLAGS, "iperf3"
+            self.additional_flags, self.IPERF_ALLOWED_FLAGS, "iperf3"
         )
         
         proc = run(
@@ -176,19 +171,19 @@ class IperfProber(ProberInterface):
         data = json.loads(stdout)
         return IperfResult.from_dict(data)
 
-    def ready(self) -> bool:
-        return bool(self.PROG_NAME and self.TARGET_HOST)
-
 class PingProber(ProberInterface):
-    COUNT = Config.PING_COUNT
-    HOST = Config.PING_TARGET_HOST
-    OPTS = [Config.PING_CMD, "-c", str(COUNT), "-q", HOST]
     PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% packet loss")
     LATENCY_REGEX = re.compile(r"round-trip min/avg/max(?:stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?) ms")
     HOST_IP_REGEX = re.compile(r"PING (\S+) \((\S+)\)")
 
+    def __init__(self, config: PingConfig):
+        self.count = config.count
+        self.cmd = config.cmd
+        self.host = config.target_host
+        self.opts = [self.cmd, "-c", str(self.count), "-q", self.host] 
+
     def __run(self):
-        proc = run(self.OPTS, stdout=PIPE, stderr=PIPE)
+        proc = run(self.opts, stdout=PIPE, stderr=PIPE)
         if proc.returncode == 0:
             return proc.stdout
         raise Exception(f"ping process returned error (return code {proc.returncode}, {proc.stderr})")
@@ -221,9 +216,3 @@ class PingProber(ProberInterface):
     def probe(self) -> PingResult:
         output = self.__run()
         return self.__parse_output(output)
-    
-    def ready(self) -> bool:
-        if Config.PING_CMD is not None and Config.PING_TARGET_HOST is not None and Config.PING_COUNT > 0:
-            return True
-        logger.warning("Ping command, target host or count not properly configured. Not ready.")
-        return False

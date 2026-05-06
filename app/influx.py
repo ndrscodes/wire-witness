@@ -3,15 +3,15 @@ from models.speedtest_models import SpeedtestResult
 from models.ping_models import PingResult
 from influxdb_client_3 import InfluxDBClient3, Point, write_client_options, WriteOptions
 import logging
-from config import Config
+from config import InfluxConfig
 
 logger = logging.getLogger(__name__)
 
 class InfluxClient:
-    def __init__(self, host, organization, database, token):
-        opts = WriteOptions(retry_interval=Config.RETRY_INTERVAL, max_retry_delay=Config.MAX_RETRY_DELAY, max_retry_time=Config.MAX_RETRY_TIME)
+    def __init__(self, influx_config: InfluxConfig):
+        opts = WriteOptions(retry_interval=influx_config.retry_interval, max_retry_delay=influx_config.max_retry_delay, max_retry_time=influx_config.max_retry_time)
         wco = write_client_options(write_options=opts)
-        self.client = InfluxDBClient3(host, organization, database, token, write_client_options=wco)
+        self.client = InfluxDBClient3(influx_config.host, influx_config.org, influx_config.database, influx_config.token, write_client_options=wco)
 
     def push(self, data: IperfResult | SpeedtestResult | PingResult):
         if isinstance(data, IperfResult):

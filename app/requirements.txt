@@ -1,3 +1,4 @@
 apscheduler
 influxdb3-python
+pyyaml
 setuptools==81.0.0

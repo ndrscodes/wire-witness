@@ -32,9 +32,6 @@ class TaskHandler:
         for subscriber in self.subscribers:
             subscriber.update(data)
     
-    def ready(self):
-        return self.prober.ready()
-    
 class InfluxHandler(SubscriberInterface):
     def __init__(self, influx_client: InfluxClient):
         self.client = influx_client

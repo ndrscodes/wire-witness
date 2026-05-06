@@ -1,0 +1,169 @@
+# WireWitness Configuration Example
+# This YAML file demonstrates how to configure the WireWitness network monitoring tool.
+# The configuration matches the docker-compose.example.yml setup.
+#
+# Key features:
+# - Commands (cmd) are optional: if not specified, the tool will use `which()` to find them
+# - Token can be loaded from a file (token_file) or specified directly (token)
+# - Token takes precedence over token_file if both are specified
+# - Configuration can be layered: YAML file -> environment variables -> CLI arguments
+
+# InfluxDB Configuration
+# Stores all measurement results (ping, iperf, speedtest)
+influx: 
+  host: "http://influx:8181"             # InfluxDB server URL (matches docker-compose)
+  org: "wirewitness"                     # InfluxDB organization
+  database: "wirewitness"                # InfluxDB bucket name (default: wirewitness)
+  
+  # Token configuration (choose one or both):
+  # Option 1: Load token from a file (e.g., Docker secret)
+  token_file: "/run/secrets/influx-admin-token"  # Path to token file (JSON with "token" key)
+  
+  # Option 2: Specify token directly (overrides token_file if both set)
+  # token: "your-influxdb-admin-token"
+  
+  # Retry settings (optional, shown with defaults):
+  retry_interval: 5000                   # Retry interval in milliseconds (default: 5000)
+  max_retry_time: 86400000               # Max retry time in milliseconds (default: 24 hours)
+  max_retry_delay: 120000                # Max retry delay in milliseconds (default: 120 seconds)
+
+# Ping Configuration
+# Monitors latency and packet loss to target hosts
+ping:
+  - schedule: "*/5 * * * *"              # Every 5 minutes
+    target_host: "8.8.8.8"               # Target host (Google DNS)
+    count: 5                             # Number of ping packets (default: 5)
+    # cmd is optional: defaults to `which("ping")` result
+    
+  - schedule: "*/5 * * * *"              # Every 5 minutes
+    target_host: "1.1.1.1"               # Target host (Cloudflare DNS)
+    count: 5
+    cmd: "/bin/ping"                     # Optional: specify custom path
+
+# iPerf3 Configuration
+# Measures bandwidth and throughput
+iperf:
+  - schedule: "* * * * *"                # Every minute (matches docker-compose)
+    target_host: "127.0.0.1"             # Target iPerf3 server (matches docker-compose)
+    duration: 10                         # Test duration in seconds (default: 10)
+    additional_flags: ""                 # Optional: extra iPerf3 flags
+    # cmd is optional: defaults to `which("iperf3")` result
+
+# Speedtest Configuration
+# Measures download/upload speeds and latency
+speedtest:
+  - schedule: "* * * * *"                # Every minute (matches docker-compose)
+    accept_license: true                 # Accept Ookla license (required: true)
+    accept_gdpr: true                    # Accept GDPR terms (required: true)
+    additional_flags: ""                 # Optional: extra speedtest flags
+    id: "speedtest"                      # Unique identifier (default: "speedtest")
+    # cmd is optional: defaults to `which("speedtest")` result
+
+# Grace Time Configuration (Optional)
+# Allows jobs to run a bit late before being considered a misfire
+grace_time: 30
+
+# ============================================================================
+# CRON SCHEDULE REFERENCE
+# ============================================================================
+# Format: minute hour day month day-of-week
+# 
+# Common Examples:
+#   "* * * * *"       = Every minute
+#   "*/5 * * * *"     = Every 5 minutes
+#   "0 * * * *"       = Every hour
+#   "0 0 * * *"       = Daily at midnight
+#   "0 0 * * 0"       = Weekly on Sunday at midnight
+#   "0 9-17 * * 1-5"  = Every hour from 9 AM to 5 PM on weekdays
+#
+# For more help: https://crontab.guru/
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+# 1. YAML Tags Required:
+#    - !InfluxConfig, !PingConfig, !IPerfConfig, !SpeedtestConfig
+#    These tags are essential for proper YAML deserialization via yaml.safe_load()
+#
+# 2. InfluxDB Configuration (Required):
+#    - host: InfluxDB server URL (must include protocol)
+#    - org: InfluxDB organization name
+#    - database: InfluxDB bucket name (default: "wirewitness")
+#    - token_file: Path to file containing JSON with "token" key
+#    - token: Direct token value (overrides token_file if both set)
+#    - Retry settings are optional with sensible defaults
+#
+# 3. Token Loading Priority:
+#    token (direct) > token_file (from file) > not set
+#    This allows Docker secrets (token_file) to work without manual token config,
+#    while still supporting direct token specification when needed.
+#
+# 4. Command Defaults:
+#    - PingConfig.cmd: defaults to `which("ping")`
+#    - IPerfConfig.cmd: defaults to `which("iperf3")`
+#    - SpeedtestConfig.cmd: defaults to `which("speedtest")`
+#    Only specify cmd if you need a non-standard path.
+#
+# 5. Configuration Merging:
+#    The tool supports merging configurations from multiple sources:
+#    - YAML config file (this file) - lowest priority
+#    - Environment variables - medium priority
+#    - Command-line arguments - highest priority
+#    Later sources override earlier ones
+#
+# 6. Docker Compose Integration:
+#    This example matches docker-compose.example.yml:
+#    - InfluxDB host: http://influx:8181
+#    - iPerf target: 127.0.0.1 (localhost in container)
+#    - Speedtest and iPerf run every minute
+#    - Token loaded from /run/secrets/influx-admin-token
+
+# ============================================================================
+# ENVIRONMENT VARIABLE ALTERNATIVES
+# ============================================================================
+# Instead of using this YAML file, you can configure via environment variables:
+#
+# InfluxDB:
+#   INFLUXDB_HOST=http://influx:8181
+#   INFLUXDB_ORG=wirewitness
+#   INFLUXDB_DATABASE=wirewitness
+#   INFLUXDB_TOKEN_FILE=/run/secrets/influx-admin-token  # Token from file
+#   INFLUXDB_TOKEN=your-token-here                        # Direct token (overrides file)
+#   RETRY_INTERVAL=5000
+#   MAX_RETRY_TIME=86400000
+#   MAX_RETRY_DELAY=120000
+#
+# Ping:
+#   PING_CMD=/bin/ping
+#   PING_TARGET_HOST=8.8.8.8
+#   PING_COUNT=5
+#   PING_CRON_SCHEDULE=*/5 * * * *
+#
+# iPerf:
+#   IPERF_CMD=/usr/bin/iperf3
+#   IPERF_TARGET_HOST=127.0.0.1
+#   IPERF_DURATION=10
+#   IPERF_CRON_SCHEDULE=* * * * *
+#   IPERF_ADDITIONAL_FLAGS=
+#
+# Speedtest:
+#   SPEEDTEST_CMD=/speedtest
+#   SPEEDTEST_CRON_SCHEDULE=* * * * *
+#   SPEEDTEST_LICENSE_ACCEPT=yes
+#   SPEEDTEST_GDPR_ACCEPT=yes
+#   SPEEDTEST_ADDITIONAL_FLAGS=
+#
+# Grace Time:
+#   MISFIRE_GRACE_TIME=30
+
+# ============================================================================
+# USAGE
+# ============================================================================
+# To use this configuration file, pass it to the WireWitness application:
+#
+#   python app/main.py --config-file config.example.yaml
+#
+# Or in Docker:
+#
+#   docker run -v $(pwd)/config.example.yaml:/app/config.yaml \
+#     wirewitness python app/main.py --config-file /app/config.yaml
