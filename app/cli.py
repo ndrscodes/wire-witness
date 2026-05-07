@@ -100,15 +100,15 @@ Examples:
         help="Cron schedule for speedtest tests (default: SPEEDTEST_CRON_SCHEDULE env var)",
     )
     speedtest_group.add_argument(
-        "--speedtest-gdpr",
+        "--accept-speedtest-gdpr",
         action="store_true",
-        default=None,
+        default=False,
         help="Accept speedtest GDPR terms (default: SPEEDTEST_GDPR_ACCEPT env var)",
     )
     speedtest_group.add_argument(
-        "--speedtest-license",
+        "--accept-speedtest-license",
         action="store_true",
-        default=None,
+        default=False,
         help="Accept speedtest license terms (default: SPEEDTEST_LICENSE_ACCEPT env var)",
     )
 

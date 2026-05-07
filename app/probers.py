@@ -7,7 +7,7 @@ from subprocess import PIPE, run
 from shutil import which
 from typing import Any
 
-from config import Config, IPerfConfig, PingConfig, SpeedtestConfig
+from config import IPerfTask, SpeedtestTask, PingTask
 from models.speedtest_models import SpeedtestResult
 from models.iperf_models import IperfResult
 from models.ping_models import PingResult
@@ -54,14 +54,13 @@ class SpeedtestProber(ProberInterface):
         "-a", "-A", "-b", "-B",
         "--selection-details",
         "--ca-certificate",
-        "-v",
         "--output-header",
     }
 
-    def __init__(self, config: SpeedtestConfig):
-        self.cmd = config.cmd
-        self.accept_gdpr = config.accept_gdpr
-        self.accept_license = config.accept_license
+    def __init__(self, config: SpeedtestTask, cmd: str | None, gdpr: bool = False, license: bool = False):
+        self.cmd = cmd
+        self.accept_gdpr = gdpr
+        self.accept_license = license
         self.additional_flags = config.additional_flags
     
     def __get_cli_opts(self) -> list[str]:
@@ -139,8 +138,8 @@ class IperfProber(ProberInterface):
         "--dont-fragment",
     }
 
-    def __init__(self, config: IPerfConfig):
-        self.cmd = config.cmd
+    def __init__(self, config: IPerfTask, cmd: str | None):
+        self.cmd = cmd
         self.additional_flags = config.additional_flags
         self.duration = config.duration
         self.host = config.target_host
@@ -176,11 +175,11 @@ class PingProber(ProberInterface):
     LATENCY_REGEX = re.compile(r"round-trip min/avg/max(?:stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?) ms")
     HOST_IP_REGEX = re.compile(r"PING (\S+) \((\S+)\)")
 
-    def __init__(self, config: PingConfig):
+    def __init__(self, config: PingTask, cmd: str | None):
         self.count = config.count
-        self.cmd = config.cmd
+        self.cmd = cmd
         self.host = config.target_host
-        self.opts = [self.cmd, "-c", str(self.count), "-q", self.host] 
+        self.opts = [self.cmd, "-c", str(self.count), "-q", self.host]
 
     def __run(self):
         proc = run(self.opts, stdout=PIPE, stderr=PIPE)
