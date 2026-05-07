@@ -89,8 +89,8 @@ If you provide both, the command-line arguments will take priority.
 | Configuration | Environment Variable | Command-Line Argument | Description | Default |
 | :--- | :--- | :--- | :--- | :--- |
 | **Schedule** | `SPEEDTEST_CRON_SCHEDULE` | `--speedtest-schedule` | When to run the internet speed test (standard cron syntax). | *None* |
-| **Accept GDPR** | `SPEEDTEST_GDPR_ACCEPT` | `--speedtest-gdpr` | You must accept Ookla's GDPR terms to run the prober. | `False` |
-| **Accept License**| `SPEEDTEST_LICENSE_ACCEPT`| `--speedtest-license` | You must accept Ookla's License terms to run the prober. | `False` |
+| **Accept GDPR** | `SPEEDTEST_GDPR_ACCEPT` | `--accept-speedtest-gdpr` *no value required* | You must accept Ookla's GDPR terms to run the prober. | `False` |
+| **Accept License**| `SPEEDTEST_LICENSE_ACCEPT`| `--accept-speedtest-license` *no value required* | You must accept Ookla's License terms to run the prober. | `False` |
 | **Command Path**| `SPEEDTEST_CMD` | `--speedtest-cmd` | The path to your Ookla speedtest binary. | Uses the installed `speedtest` binary. |
 | **Extra Flags** | `SPEEDTEST_ADDITIONAL_FLAGS`| *N/A* | Target specific servers or interfaces by passing extra flags here (see `speedtest --help`). | *None* |
 

@@ -30,6 +30,7 @@ influx:
 # Ping Configuration
 # Monitors latency and packet loss to target hosts
 ping:
+  tasks:
   - schedule: "*/5 * * * *"              # Every 5 minutes
     target_host: "8.8.8.8"               # Target host (Google DNS)
     count: 5                             # Number of ping packets (default: 5)
@@ -43,6 +44,7 @@ ping:
 # iPerf3 Configuration
 # Measures bandwidth and throughput
 iperf:
+  tasks:
   - schedule: "* * * * *"                # Every minute (matches docker-compose)
     target_host: "127.0.0.1"             # Target iPerf3 server (matches docker-compose)
     duration: 10                         # Test duration in seconds (default: 10)
@@ -52,9 +54,11 @@ iperf:
 # Speedtest Configuration
 # Measures download/upload speeds and latency
 speedtest:
+  accept_license: true                 # Accept Ookla license (required: true)
+  accept_gdpr: yeah                    # Accept GDPR terms (required: true) (config is actually friendly :))
+  cmd: "/speedtest"                    # Optional: specify custom path
+  tasks:
   - schedule: "* * * * *"                # Every minute (matches docker-compose)
-    accept_license: true                 # Accept Ookla license (required: true)
-    accept_gdpr: true                    # Accept GDPR terms (required: true)
     additional_flags: ""                 # Optional: extra speedtest flags
     id: "speedtest"                      # Unique identifier (default: "speedtest")
     # cmd is optional: defaults to `which("speedtest")` result
@@ -81,11 +85,8 @@ grace_time: 30
 # ============================================================================
 # CONFIGURATION NOTES
 # ============================================================================
-# 1. YAML Tags Required:
-#    - !InfluxConfig, !PingConfig, !IPerfConfig, !SpeedtestConfig
-#    These tags are essential for proper YAML deserialization via yaml.safe_load()
-#
-# 2. InfluxDB Configuration (Required):
+
+# 1. InfluxDB Configuration (Required):
 #    - host: InfluxDB server URL (must include protocol)
 #    - org: InfluxDB organization name
 #    - database: InfluxDB bucket name (default: "wirewitness")
@@ -93,25 +94,25 @@ grace_time: 30
 #    - token: Direct token value (overrides token_file if both set)
 #    - Retry settings are optional with sensible defaults
 #
-# 3. Token Loading Priority:
+# 2. Token Loading Priority:
 #    token (direct) > token_file (from file) > not set
 #    This allows Docker secrets (token_file) to work without manual token config,
 #    while still supporting direct token specification when needed.
 #
-# 4. Command Defaults:
+# 3. Command Defaults:
 #    - PingConfig.cmd: defaults to `which("ping")`
 #    - IPerfConfig.cmd: defaults to `which("iperf3")`
 #    - SpeedtestConfig.cmd: defaults to `which("speedtest")`
 #    Only specify cmd if you need a non-standard path.
 #
-# 5. Configuration Merging:
+# 4. Configuration Merging:
 #    The tool supports merging configurations from multiple sources:
 #    - YAML config file (this file) - lowest priority
 #    - Environment variables - medium priority
 #    - Command-line arguments - highest priority
 #    Later sources override earlier ones
 #
-# 6. Docker Compose Integration:
+# 5. Docker Compose Integration:
 #    This example matches docker-compose.example.yml:
 #    - InfluxDB host: http://influx:8181
 #    - iPerf target: 127.0.0.1 (localhost in container)
