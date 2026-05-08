@@ -89,9 +89,13 @@ class SpeedtestProber(ProberInterface):
         raise Exception(f"process returned error (return code {proc.returncode}, {proc.stderr})")
 
     def probe(self) -> SpeedtestResult:
-        stdout = self.__run()
-        data = json.loads(stdout)
-        return SpeedtestResult.from_dict(data)
+        try:
+            stdout = self.__run()
+            data = json.loads(stdout)
+            return SpeedtestResult.from_dict(data)
+        except Exception as e:
+            logger.error("Speedtest failed: %s", e)
+            return SpeedtestResult(error=str(e))
 
 class IperfProber(ProberInterface):
     IPERF_ALLOWED_FLAGS = {
@@ -166,9 +170,13 @@ class IperfProber(ProberInterface):
         raise Exception(f'iperf3 process returned error: {json.loads(proc.stdout.decode())["error"]}')
 
     def probe(self, host: str | None = None) -> IperfResult:
-        stdout = self.__run(host)
-        data = json.loads(stdout)
-        return IperfResult.from_dict(data)
+        try:
+            stdout = self.__run(host)
+            data = json.loads(stdout)
+            return IperfResult.from_dict(data)
+        except Exception as e:
+            logger.error("IPerf run failed: %s", e)
+            return IperfResult(error=str(e))
 
 class PingProber(ProberInterface):
     PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% packet loss")
@@ -191,7 +199,7 @@ class PingProber(ProberInterface):
         lines = output.decode().splitlines()
 
         if len(lines) < 3:
-            raise Exception(f"unexpected ping output: {output}")
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
         
         host_line = lines[0]
         packet_line = lines[-2]
@@ -201,7 +209,7 @@ class PingProber(ProberInterface):
         packet_loss_match = self.PACKET_LOSS_REGEX.search(packet_line)
         latency_match = self.LATENCY_REGEX.search(stats_line)
         if not packet_loss_match or not latency_match or not host_ip_match:
-            raise Exception(f"unexpected ping output: {output}")
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
         
         return PingResult(
             packet_loss=float(packet_loss_match.group(1)),
@@ -213,5 +221,8 @@ class PingProber(ProberInterface):
         )
 
     def probe(self) -> PingResult:
-        output = self.__run()
-        return self.__parse_output(output)
+        try:
+            output = self.__run()
+            return self.__parse_output(output)
+        except Exception as e:
+            return PingResult(error=str(e), host=self.host)

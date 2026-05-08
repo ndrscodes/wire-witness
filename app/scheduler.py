@@ -37,12 +37,18 @@ CONFIG_GENERATOR_MAPPING = {
 def to_jobs(config: config.SpeedtestConfig | config.IPerfConfig | config.PingConfig, common_subscribers: list[handler.SubscriberInterface]) -> list[Task]:
     tasks = []
     for task_config in config.tasks:
+        h = handler.TaskHandler(
+            prober=CONFIG_GENERATOR_MAPPING[type(config)](config, task_config),
+            id=task_config.name()
+        )
+        for subscriber in common_subscribers:
+            h.subscribe(subscriber)
+
         tasks.append(
             Task(
                 CronTrigger.from_crontab(task_config.schedule), 
-                handler.TaskHandler(
-                    prober=CONFIG_GENERATOR_MAPPING[type(config)](config, task_config)
-                ), task_config.name()
+                h,
+                task_config.name()
             )
         )
     return tasks

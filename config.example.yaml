@@ -31,12 +31,12 @@ influx:
 # Monitors latency and packet loss to target hosts
 ping:
   tasks:
-  - schedule: "*/5 * * * *"              # Every 5 minutes
+  - schedule: "* * * * *"              # Every 5 minutes
     target_host: "8.8.8.8"               # Target host (Google DNS)
     count: 5                             # Number of ping packets (default: 5)
     # cmd is optional: defaults to `which("ping")` result
     
-  - schedule: "*/5 * * * *"              # Every 5 minutes
+  - schedule: "* * * * *"              # Every 5 minutes
     target_host: "1.1.1.1"               # Target host (Cloudflare DNS)
     count: 5
     cmd: "/bin/ping"                     # Optional: specify custom path

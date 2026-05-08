@@ -13,16 +13,21 @@ class InfluxClient:
         wco = write_client_options(write_options=opts)
         self.client = InfluxDBClient3(influx_config.host, influx_config.org, influx_config.database, influx_config.token, write_client_options=wco)
 
-    def push(self, data: IperfResult | SpeedtestResult | PingResult):
+    def push(self, data: IperfResult | SpeedtestResult | PingResult, id: str | None = None):
         if isinstance(data, IperfResult):
             points = iperf_to_point(data)
         elif isinstance(data, SpeedtestResult):
             points = speedtest_to_point(data)
         elif isinstance(data, PingResult):
-            points = ping_to_point(data)
+            points = [ping_to_point(data)]
         else:
             logger.warning(f"received unknown data type: {type(data).__name__}")
             return
+        
+        for point in points:
+            if id:
+                point.tag("id", id)
+            self.client.write(point)
 
         self.client.write(points)
 
@@ -31,36 +36,41 @@ def speedtest_to_point(data: SpeedtestResult) -> list[Point]:
 
     result_point = (
         Point("speedtest_result")
-        .time(data.timestamp)
-        .tag("type", data.type)
-        .tag("isp", data.isp)
-        .tag("country", data.server.country)
-        .tag("server_name", data.server.name)
-        .tag("server_location", data.server.location)
-        .tag("interface_name", data.interface.name)
-        .tag("interface_is_vpn", str(data.interface.is_vpn))
-        .tag("result_id", data.result.id)
-        .tag("result_url", data.result.url)
-        .field("packet_loss", data.packet_loss)
-        .field("ping_latency", data.ping.latency)
-        .field("ping_low", data.ping.low)
-        .field("ping_high", data.ping.high)
-        .field("ping_jitter", data.ping.jitter)
-        .field("download_bandwidth", data.download.bandwidth)
-        .field("download_bytes", data.download.bytes)
-        .field("download_elapsed", data.download.elapsed)
-        .field("download_latency_iqm", data.download.latency.iqm)
-        .field("download_latency_low", data.download.latency.low)
-        .field("download_latency_high", data.download.latency.high)
-        .field("download_latency_jitter", data.download.latency.jitter)
-        .field("upload_bandwidth", data.upload.bandwidth)
-        .field("upload_bytes", data.upload.bytes)
-        .field("upload_elapsed", data.upload.elapsed)
-        .field("upload_latency_iqm", data.upload.latency.iqm)
-        .field("upload_latency_low", data.upload.latency.low)
-        .field("upload_latency_high", data.upload.latency.high)
-        .field("upload_latency_jitter", data.upload.latency.jitter)
+            .tag("type", data.type)
+            .tag("isp", data.isp)
+            .tag("country", data.server.country)
+            .tag("server_name", data.server.name)
+            .tag("server_location", data.server.location)
+            .tag("interface_name", data.interface.name)
+            .tag("interface_is_vpn", str(data.interface.is_vpn))
+            .tag("result_id", data.result.id)
+            .tag("result_url", data.result.url)
+            .field("packet_loss", data.packet_loss)
+            .field("ping_latency", data.ping.latency)
+            .field("ping_low", data.ping.low)
+            .field("ping_high", data.ping.high)
+            .field("ping_jitter", data.ping.jitter)
+            .field("download_bandwidth", data.download.bandwidth)
+            .field("download_bytes", data.download.bytes)
+            .field("download_elapsed", data.download.elapsed)
+            .field("download_latency_iqm", data.download.latency.iqm)
+            .field("download_latency_low", data.download.latency.low)
+            .field("download_latency_high", data.download.latency.high)
+            .field("download_latency_jitter", data.download.latency.jitter)
+            .field("upload_bandwidth", data.upload.bandwidth)
+            .field("upload_bytes", data.upload.bytes)
+            .field("upload_elapsed", data.upload.elapsed)
+            .field("upload_latency_iqm", data.upload.latency.iqm)
+            .field("upload_latency_low", data.upload.latency.low)
+            .field("upload_latency_high", data.upload.latency.high)
+            .field("upload_latency_jitter", data.upload.latency.jitter)
     )
+
+    if data.is_error():
+        result_point.tag("error", data.error)
+    else:
+        result_point.time(data.timestamp)
+
     records.append(result_point)
 
     return records
@@ -107,6 +117,10 @@ def iperf_to_point(data: IperfResult) -> list[Point]:
         .field("cpu_utilization_host", data.end.cpu_utilization_percent.get("host_total", 0.0))
         .field("cpu_utilization_remote", data.end.cpu_utilization_percent.get("remote_total", 0.0))
     )
+
+    if data.is_error():
+        result_point.tag("error", data.error)
+
     records.append(result_point)
 
     if len(data.end.streams) > 1:
@@ -144,4 +158,8 @@ def ping_to_point(data: PingResult) -> Point:
         .field("latency_min", data.min_latency)
         .field("latency_max", data.max_latency)
     )
+    
+    if data.is_error():
+        point.tag("error", data.error)
+
     return point
