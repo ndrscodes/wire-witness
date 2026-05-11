@@ -66,12 +66,6 @@ After a short wait (the first cron jobs need to fire), you'll see network metric
 docker-compose down
 ```
 
-To remove all data (including stored metrics):
-
-```bash
-docker-compose down -v
-```
-
 ---
 
 ## Prerequisites
