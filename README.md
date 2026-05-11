@@ -1,6 +1,7 @@
 # WireWitness
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)](https://docs.docker.com/get-started/)
+[![GitHub Container](https://img.shields.io/badge/GHCR-Published-blue?style=for-the-badge&logo=github)](https://github.com/ndrscodes/wirewitness/pkgs/container/wirewitness)
 [![Python](https://img.shields.io/badge/Python-3.8+-green?style=for-the-badge&logo=python)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![InfluxDB](https://img.shields.io/badge/InfluxDB-3.x-orange?style=for-the-badge&logo=influxdb)](https://www.influxdata.com/)
@@ -217,9 +218,19 @@ The docker image in this repository comes with the `speedtest` CLI and `iperf3` 
 docker-compose up -d
 ```
 
-You can, of course, als run only the WireWitness container and let it send measurements to a remote InfluxDB instance.
+You can, of course, also run only the WireWitness container and let it send measurements to a remote InfluxDB instance. A pre-built Docker image is published to GitHub Container Registry (GHCR) on every release.
 
-``` bash
+```bash
+# Pull the latest released image from GHCR
+docker pull ghcr.io/ndrscodes/wirewitness:latest
+
+# Run the pulled image
+docker run -d ghcr.io/ndrscodes/wirewitness:latest
+```
+
+Alternatively, you can build the image locally:
+
+```bash
 docker build -t wirewitness:latest .
 docker run -d wirewitness:latest
 ```
