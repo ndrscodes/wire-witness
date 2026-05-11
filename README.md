@@ -121,16 +121,6 @@ Most network monitoring tools are either too complex (full enterprise APM suites
 - **Lightweight and portable** — Run it on a Raspberry Pi, a home server, or in the cloud. Deploy at remote sites with a single command
 - **Flexible scheduling** — Run tests as frequently as you want, on your own schedule, targeting any host
 
-### What Makes It Different
-
-| Feature | Traditional Tools | WireWitness |
-|---------|------------------|-------------|
-| **Setup** | Complex, manual | One command (`docker-compose up -d`) |
-| **Scope** | Either ping OR speed test | Both, plus iPerf3 for internal testing |
-| **Storage** | Ephemeral (results disappear) | Historical (keep months of data) |
-| **Visualization** | Custom work required | Pre-built Grafana dashboards |
-| **Deployment** | Single-purpose | Single container, multiple probers |
-
 Note that `speedtest` mentioned here is the official Ookla Speedtest CLI, not the community `speedtest-cli` tool. Both tools behave differently and create different output, so be sure to use the official Ookla tool if setting up locally. The docker image already uses the correct tool.
 
 ## Use Cases
