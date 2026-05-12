@@ -228,7 +228,7 @@ class IperfProber(ProberInterface):
 class PingProber(ProberInterface):
     PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% packet loss")
     LATENCY_REGEX = re.compile(
-        r"round-trip min/avg/max(?:stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?) ms"
+        r"round-trip min/avg/max(?:/stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)(?:/\d+(?:\.\d+)?)? ms"
     )
     HOST_IP_REGEX = re.compile(r"PING (\S+) \((\S+)\)")
 
@@ -246,7 +246,7 @@ class PingProber(ProberInterface):
             f"ping process returned error (return code {proc.returncode}, {proc.stderr})"
         )
 
-    def __parse_output(self, output: bytes) -> PingResult:
+    def parse_output(self, output: bytes) -> PingResult:
         lines = output.decode().splitlines()
 
         if len(lines) < 3:
@@ -274,6 +274,6 @@ class PingProber(ProberInterface):
     def probe(self) -> PingResult:
         try:
             output = self.__run()
-            return self.__parse_output(output)
+            return self.parse_output(output)
         except Exception as e:
             return PingResult(error=str(e), host=self.host)
