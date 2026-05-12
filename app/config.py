@@ -88,32 +88,32 @@ class PingTask(Schedulable, SupportsMerge["PingTask"], ValidationMixin, NamedMix
     count: int = 5
 
     @classmethod
-    def from_dict(cls, data: dict) -> PingTask:
+    def from_dict(cls, data: dict) -> Self:
         return cls(
             schedule=data.get("schedule"),
             target_host=data["target_host"],
             count=data.get("count", 5),
         )
 
-    @staticmethod
-    def from_env() -> PingTask | None:
+    @classmethod
+    def from_env(cls) -> Self | None:
         target_host = os.environ.get("PING_TARGET_HOST")
         count = int(os.environ.get("PING_COUNT", "5"))
         schedule = os.environ.get("PING_CRON_SCHEDULE")
         if target_host and count > 0 and schedule:
-            return PingTask(schedule, target_host, count)
+            return cls(schedule, target_host, count)
         return None
     
-    @staticmethod
-    def from_cli_args(args) -> PingTask | None:
+    @classmethod
+    def from_cli_args(cls, args) -> Self | None:
         target_host = args.ping_host
         count = args.ping_count if args.ping_count is not None else 5
         schedule = args.ping_schedule
         if target_host and count > 0 and schedule:
-            return PingTask(schedule, target_host, count)
+            return cls(schedule, target_host, count)
         return None
         
-    def merge_with(self, other: PingTask | None) -> PingTask:
+    def merge_with(self, other: Self | None) -> Self:
         if other is None:
             return self
         
@@ -151,22 +151,22 @@ class PingConfig(SupportsMerge["PingConfig"], ValidationMixin, FromDictMixin):
         )
     
     @classmethod
-    def from_env(cls) -> PingConfig | None:
+    def from_env(cls) -> Self | None:
         cmd = os.environ.get("PING_CMD") or cls.DEFAULT_CMD
         task = PingTask.from_env()
         if task:
-            return PingConfig(cmd=cmd, tasks=[task])
-        return PingConfig(cmd)
+            return cls(cmd=cmd, tasks=[task])
+        return cls(cmd)
     
     @classmethod
-    def from_cli_args(cls, args) -> PingConfig | None:
+    def from_cli_args(cls, args) -> Self | None:
         cmd = args.ping_cmd or cls.DEFAULT_CMD
         task = PingTask.from_cli_args(args)
         if task:
-            return PingConfig(cmd=cmd, tasks=[task])
-        return PingConfig(cmd)
+            return cls(cmd=cmd, tasks=[task])
+        return cls(cmd)
     
-    def merge_with(self, other: PingConfig | None) -> PingConfig:
+    def merge_with(self, other: Self | None) -> Self:
         if other is None:
             return self
         
@@ -281,7 +281,7 @@ class IPerfConfig(SupportsMerge["IPerfConfig"], ValidationMixin, NamedMixin):
             return IPerfConfig(cmd=cmd, tasks=[task])
         return IPerfConfig(cmd)
     
-    def merge_with(self, other: IPerfConfig | None) -> IPerfConfig:
+    def merge_with(self, other: Self | None) -> Self:
         if not other:
             return self
         self.cmd = other.cmd if other else None or self.cmd
@@ -306,7 +306,7 @@ class SpeedtestTask(Schedulable, SupportsMerge["SpeedtestTask"], ValidationMixin
     id: str = "speedtest"
 
     @classmethod
-    def from_dict(cls, data: dict) -> SpeedtestTask:
+    def from_dict(cls, data: dict) -> Self:
         return cls(
             schedule=data.get("schedule"),
             additional_flags=data.get("additional_flags", ""),
@@ -356,7 +356,7 @@ class SpeedtestConfig(SupportsMerge["SpeedtestConfig"], ValidationMixin):
     accept_license: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict) -> "SpeedtestConfig":
+    def from_dict(cls, data: dict) -> Self:
         tasks = [SpeedtestTask.from_dict(task_data) for task_data in data.get("tasks", [])]
         cmd = data.get("cmd") or cls.DEFAULT_CMD
         accept_gdpr = str(data.get("accept_gdpr")).lower() in YES_VALUES
@@ -364,7 +364,7 @@ class SpeedtestConfig(SupportsMerge["SpeedtestConfig"], ValidationMixin):
         return cls(cmd, tasks, accept_gdpr, accept_license)
 
     @classmethod
-    def from_env(cls) -> "SpeedtestConfig | None":
+    def from_env(cls) -> Self | None:
         cmd = os.environ.get("SPEEDTEST_CMD", cls.DEFAULT_CMD)
         task = SpeedtestTask.from_env()
         accept_gdpr = True if SPEEDTEST_GDPR_ACCEPT_ENV in os.environ and os.environ.get(SPEEDTEST_GDPR_ACCEPT_ENV, "").lower() in YES_VALUES else False
@@ -374,7 +374,7 @@ class SpeedtestConfig(SupportsMerge["SpeedtestConfig"], ValidationMixin):
         return cls(cmd, [], accept_gdpr, accept_license)
     
     @classmethod
-    def from_cli_args(cls, args) -> "SpeedtestConfig | None":
+    def from_cli_args(cls, args) -> Self | None:
         cmd = args.speedtest_cmd or cls.DEFAULT_CMD
         task = SpeedtestTask.from_cli_args(args)
         accept_gdpr = args.accept_speedtest_gdpr is not None and args.accept_speedtest_gdpr
@@ -383,7 +383,7 @@ class SpeedtestConfig(SupportsMerge["SpeedtestConfig"], ValidationMixin):
             return cls(cmd, [task], accept_gdpr, accept_license)
         return cls(cmd, [], accept_gdpr, accept_license)
     
-    def merge_with(self, other: SpeedtestConfig | None) -> SpeedtestConfig:
+    def merge_with(self, other: Self | None) -> Self:
         if other is None:
             return self
         
@@ -428,7 +428,7 @@ class InfluxConfig(SupportsMerge["InfluxConfig"], ValidationMixin):
     max_retry_delay: int = 120000
 
     @classmethod
-    def from_dict(cls, data: dict) -> "InfluxConfig":
+    def from_dict(cls, data: dict) -> Self:
         token_file = data.get("token_file")
         token = None
         if token_file:
@@ -446,8 +446,8 @@ class InfluxConfig(SupportsMerge["InfluxConfig"], ValidationMixin):
             max_retry_delay=data.get("max_retry_delay", 120000),
         )
 
-    @staticmethod
-    def from_env() -> "InfluxConfig | None":
+    @classmethod
+    def from_env(cls) -> Self | None:
         host = os.environ.get("INFLUXDB_HOST")
         org = os.environ.get("INFLUXDB_ORG")
         database = os.environ.get("INFLUXDB_DATABASE", "wirewitness")
@@ -458,11 +458,11 @@ class InfluxConfig(SupportsMerge["InfluxConfig"], ValidationMixin):
         max_retry_delay = int(os.environ.get("MAX_RETRY_DELAY", "120000"))
 
         if host and org and token:
-            return InfluxConfig(host, org, database, token_file, token, retry_interval, max_retry_time, max_retry_delay)
+            return cls(host, org, database, token_file, token, retry_interval, max_retry_time, max_retry_delay)
         return None
     
-    @staticmethod
-    def from_cli_args(args) -> "InfluxConfig | None":
+    @classmethod
+    def from_cli_args(cls, args) -> Self | None:
         host = args.influx_host
         org = args.influx_org
         database = args.influx_database or "wirewitness"
@@ -473,10 +473,10 @@ class InfluxConfig(SupportsMerge["InfluxConfig"], ValidationMixin):
         max_retry_delay = args.max_retry_delay if args.max_retry_delay is not None else 120000
 
         if host and org and token:
-            return InfluxConfig(host, org, database, token_file, token, retry_interval, max_retry_time, max_retry_delay)
+            return cls(host, org, database, token_file, token, retry_interval, max_retry_time, max_retry_delay)
         return None
     
-    def merge_with(self, other: "InfluxConfig | None") -> "InfluxConfig":
+    def merge_with(self, other: Self | None) -> Self:
         if other is None:
             return self
         
@@ -517,7 +517,7 @@ class Config(ValidationMixin):
     grace_time: int | None = None
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Config":
+    def from_dict(cls, data: dict) -> Self:
         config = cls()
         
         # Parse InfluxDB config

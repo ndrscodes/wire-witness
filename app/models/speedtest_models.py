@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Self
 from errors import ErrorMixin
 
 @dataclass
@@ -166,7 +166,7 @@ class SpeedtestResult(ErrorMixin):
     result: ResultInfo = field(default_factory=ResultInfo)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SpeedtestResult:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
             type=data.get("type", ""),
             timestamp=data.get("timestamp", ""),

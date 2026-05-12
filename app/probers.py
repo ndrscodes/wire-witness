@@ -1,10 +1,7 @@
 import json
 import logging
-import os
 import re
-from dataclasses import dataclass
 from subprocess import PIPE, run
-from shutil import which
 from typing import Any
 
 from config import IPerfTask, SpeedtestTask, PingTask

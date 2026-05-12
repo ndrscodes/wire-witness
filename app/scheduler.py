@@ -1,5 +1,4 @@
 import logging
-import sys
 from apscheduler.triggers.cron import CronTrigger, BaseTrigger
 from apscheduler.schedulers.background import BlockingScheduler, BaseScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor

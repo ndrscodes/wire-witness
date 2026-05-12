@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
+from typing import Optional, Self
 
 from errors import ErrorMixin
 
@@ -13,7 +13,7 @@ class PingResult(ErrorMixin):
     ip: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> Self:
         return cls(
             packet_loss=data.get("packet_loss", 0.0),
             min_latency=data.get("min_latency", 0.0),

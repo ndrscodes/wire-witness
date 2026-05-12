@@ -28,7 +28,7 @@ def main():
     config.load(args)
     
     scheduler = create_scheduler(config)
-    if scheduler == None:
+    if scheduler is None:
         logger.error("unable to create scheduler")
         sys.exit(1)
 

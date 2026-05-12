@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Self
 from errors import ErrorMixin
 
 @dataclass
@@ -301,8 +301,8 @@ class IperfResult(ErrorMixin):
     end: EndInfo = field(default_factory=EndInfo)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> IperfResult:
-        return IperfResult(
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
             start=StartInfo.from_dict(data.get("start", {})),
             intervals=[Interval.from_dict(i) for i in data.get("intervals", [])],
             end=EndInfo.from_dict(data.get("end", {})),
