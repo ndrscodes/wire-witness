@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Self
 from errors import ErrorMixin
 
+
 @dataclass
 class Timestamp:
     time: str = ""
@@ -38,7 +39,9 @@ class ConnectionInfo:
 
 @dataclass
 class TestStartConfig:
-    __test__ = False #not a test class despite the name. Tells pytest to not test this class.
+    __test__ = (
+        False  # not a test class despite the name. Tells pytest to not test this class.
+    )
     protocol: str = "TCP"
     num_streams: int = 1
     blksize: int = 4096

@@ -1,11 +1,16 @@
 from models.speedtest_models import (
-    DownloadInfo, DownloadLatency,
-    UploadInfo, UploadLatency,
-    PingInfo, PingLatency,
-    InterfaceInfo, ServerInfo, ResultInfo,
+    DownloadInfo,
+    DownloadLatency,
+    UploadInfo,
+    UploadLatency,
+    PingInfo,
+    PingLatency,
+    InterfaceInfo,
+    ServerInfo,
+    ResultInfo,
     SpeedtestResult,
 )
-from models.iperf_models import IperfResult
+
 
 def test_download_info_from_dict_with_full_data():
     """Test DownloadInfo.from_dict with complete data including nested latency."""

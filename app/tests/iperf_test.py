@@ -1,4 +1,15 @@
-from models.iperf_models import Timestamp, ConnectionInfo, TestStartConfig, StartInfo, StreamIntervalData, IntervalSum, SentSum, StreamEndSender, StreamEndReceiver, IperfResult, EndInfo, Interval, StreamEnd
+from models.iperf_models import (
+    Timestamp,
+    ConnectionInfo,
+    TestStartConfig,
+    StartInfo,
+    StreamIntervalData,
+    IntervalSum,
+    SentSum,
+    StreamEndSender,
+    StreamEndReceiver,
+    IperfResult,
+)
 
 
 def test_timestamp_from_dict():
