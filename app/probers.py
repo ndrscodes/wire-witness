@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import os
 from subprocess import PIPE, run
 from typing import Any
 
@@ -32,6 +33,102 @@ def _parse_and_validate_flags(
         validated.extend(parts)
 
     return validated
+
+
+class PingParser:
+    def parse(self, output: str) -> PingResult:
+        raise NotImplementedError
+
+
+class WindowsPingParser(PingParser):
+    PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% loss")
+    LATENCY_REGEX = re.compile(
+        r"Minimum = (\d+)ms, Maximum = (\d+)ms, Average = (\d+)ms"
+    )
+    HOST_IP_REGEX = re.compile(r"^Pinging (\S+) (?:\[(\S+)\])? ?")
+
+    def __init__(self, host: str):
+        self.host = host
+
+    def parse(self, output: str) -> PingResult:
+        lines = output.splitlines()
+        if len(lines) < 5:
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
+
+        host_line = lines[0]
+        packet_line = lines[-3]
+        stats_line = lines[-1]
+
+        host_ip_match = self.HOST_IP_REGEX.search(host_line)
+        if not host_ip_match:
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
+
+        # windows will only show the IP if the host argument is an IP.
+        hostname = host_ip_match.group(1)
+        if host_ip_match.group(2):
+            ip = host_ip_match.group(2)
+        else:
+            ip = hostname
+
+        packet_match = self.PACKET_LOSS_REGEX.search(packet_line)
+        if not packet_match:
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
+
+        latency_match = self.LATENCY_REGEX.search(stats_line)
+        if not latency_match:
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
+
+        return PingResult(
+            packet_loss=float(packet_match.group(1)),
+            min_latency=int(latency_match.group(1)),
+            avg_latency=int(latency_match.group(3)),
+            max_latency=int(latency_match.group(2)),
+            host=hostname,
+            ip=ip,
+        )
+
+
+class UnixPingParser(PingParser):
+    PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% packet loss")
+    LATENCY_REGEX = re.compile(
+        r"round-trip min/avg/max(?:/stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)(?:/\d+(?:\.\d+)?)? ms"
+    )
+    HOST_IP_REGEX = re.compile(r"PING (\S+) \((\S+)\)")
+
+    def __init__(self, host: str):
+        self.host = host
+
+    def parse(self, output: str) -> PingResult:
+        lines = output.splitlines()
+
+        if len(lines) < 3:
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
+
+        host_line = lines[0]
+        packet_line = lines[-2]
+        stats_line = lines[-1]
+
+        host_ip_match = self.HOST_IP_REGEX.search(host_line)
+        packet_loss_match = self.PACKET_LOSS_REGEX.search(packet_line)
+        latency_match = self.LATENCY_REGEX.search(stats_line)
+        if not packet_loss_match or not latency_match or not host_ip_match:
+            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
+
+        return PingResult(
+            packet_loss=float(packet_loss_match.group(1)),
+            min_latency=float(latency_match.group(1)),
+            avg_latency=float(latency_match.group(2)),
+            max_latency=float(latency_match.group(3)),
+            host=host_ip_match.group(1),
+            ip=host_ip_match.group(2),
+        )
+
+
+def create_ping_parser(host: str):
+    if os.name == "nt":
+        return WindowsPingParser(host)
+    else:
+        return UnixPingParser(host)
 
 
 class ProberInterface:
@@ -226,17 +323,15 @@ class IperfProber(ProberInterface):
 
 
 class PingProber(ProberInterface):
-    PACKET_LOSS_REGEX = re.compile(r"(\d+(?:\.\d+)?)% packet loss")
-    LATENCY_REGEX = re.compile(
-        r"round-trip min/avg/max(?:/stddev)? = (\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)/(\d+(?:\.\d+)?)(?:/\d+(?:\.\d+)?)? ms"
-    )
-    HOST_IP_REGEX = re.compile(r"PING (\S+) \((\S+)\)")
-
     def __init__(self, config: PingTask, cmd: str | None):
         self.count = config.count
         self.cmd = cmd
         self.host = config.target_host
-        self.opts = [self.cmd, "-c", str(self.count), "-q", self.host]
+        if os.name == "nt":
+            self.opts = [self.cmd, "/n", str(self.count)]
+        else:
+            self.opts = [self.cmd, "-c", str(self.count), "-q", self.host]
+        self.parser = create_ping_parser(self.host)
 
     def __run(self):
         proc = run(self.opts, stdout=PIPE, stderr=PIPE)
@@ -247,29 +342,8 @@ class PingProber(ProberInterface):
         )
 
     def parse_output(self, output: bytes) -> PingResult:
-        lines = output.decode().splitlines()
-
-        if len(lines) < 3:
-            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
-
-        host_line = lines[0]
-        packet_line = lines[-2]
-        stats_line = lines[-1]
-
-        host_ip_match = self.HOST_IP_REGEX.search(host_line)
-        packet_loss_match = self.PACKET_LOSS_REGEX.search(packet_line)
-        latency_match = self.LATENCY_REGEX.search(stats_line)
-        if not packet_loss_match or not latency_match or not host_ip_match:
-            return PingResult(error=f"unexpected ping output: {output}", host=self.host)
-
-        return PingResult(
-            packet_loss=float(packet_loss_match.group(1)),
-            min_latency=float(latency_match.group(1)),
-            avg_latency=float(latency_match.group(2)),
-            max_latency=float(latency_match.group(3)),
-            host=host_ip_match.group(1),
-            ip=host_ip_match.group(2),
-        )
+        out = output.decode()
+        return self.parser.parse(out)
 
     def probe(self) -> PingResult:
         try:
