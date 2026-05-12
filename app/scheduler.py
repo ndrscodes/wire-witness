@@ -11,56 +11,68 @@ import influx
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class Task:
     trigger: BaseTrigger
     handler: handler.TaskHandler
     name: str
 
-def iperf_to_prober(config: config.IPerfConfig, task_config: config.IPerfTask) -> probers.IperfProber:
+
+def iperf_to_prober(
+    config: config.IPerfConfig, task_config: config.IPerfTask
+) -> probers.IperfProber:
     return probers.IperfProber(task_config, config.cmd)
 
-def ping_to_prober(config: config.PingConfig, task_config: config.PingTask) -> probers.PingProber:
+
+def ping_to_prober(
+    config: config.PingConfig, task_config: config.PingTask
+) -> probers.PingProber:
     return probers.PingProber(task_config, config.cmd)
 
-def speedtest_to_prober(config: config.SpeedtestConfig, task_config: config.SpeedtestTask) -> probers.SpeedtestProber:
+
+def speedtest_to_prober(
+    config: config.SpeedtestConfig, task_config: config.SpeedtestTask
+) -> probers.SpeedtestProber:
     print(f"speedtest to prober {config} {task_config}")
-    return probers.SpeedtestProber(task_config, config.cmd, config.accept_gdpr, config.accept_license)
+    return probers.SpeedtestProber(
+        task_config, config.cmd, config.accept_gdpr, config.accept_license
+    )
+
 
 CONFIG_GENERATOR_MAPPING = {
     config.IPerfConfig: iperf_to_prober,
     config.PingConfig: ping_to_prober,
-    config.SpeedtestConfig: speedtest_to_prober
+    config.SpeedtestConfig: speedtest_to_prober,
 }
 
-def to_jobs(config: config.SpeedtestConfig | config.IPerfConfig | config.PingConfig, common_subscribers: list[handler.SubscriberInterface]) -> list[Task]:
+
+def to_jobs(
+    config: config.SpeedtestConfig | config.IPerfConfig | config.PingConfig,
+    common_subscribers: list[handler.SubscriberInterface],
+) -> list[Task]:
     tasks = []
     for task_config in config.tasks:
         h = handler.TaskHandler(
             prober=CONFIG_GENERATOR_MAPPING[type(config)](config, task_config),
-            id=task_config.name()
+            id=task_config.name(),
         )
         for subscriber in common_subscribers:
             h.subscribe(subscriber)
 
         tasks.append(
-            Task(
-                CronTrigger.from_crontab(task_config.schedule), 
-                h,
-                task_config.name()
-            )
+            Task(CronTrigger.from_crontab(task_config.schedule), h, task_config.name())
         )
     return tasks
 
+
 def create_scheduler(config: config.Config) -> BaseScheduler | None:
     # we do not allow parallel executions as these might influence measurements on other executors.
-    executors = {
-        "default": ThreadPoolExecutor(max_workers=1)
-    }
+    executors = {"default": ThreadPoolExecutor(max_workers=1)}
 
     validation = config.validate()
     if not validation.valid:
-        logger.error(f"Invalid configuration: {"\n".join(validation.errors)}")
+        logger.error(f"Invalid configuration: {'\n'.join(validation.errors)}")
         return None
 
     if config.influx is None:
@@ -84,13 +96,13 @@ def create_scheduler(config: config.Config) -> BaseScheduler | None:
     for task in tasks:
         if task.trigger is None:
             raise Exception("Schedule not defined")
-        
+
         scheduler.add_job(
             task.handler.execute,
             task.trigger,
             max_instances=1,
             misfire_grace_time=config.grace_time,
-            name=task.name
+            name=task.name,
         )
 
     return scheduler

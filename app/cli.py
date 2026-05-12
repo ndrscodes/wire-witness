@@ -1,4 +1,3 @@
-
 import argparse
 
 
@@ -160,10 +159,11 @@ Examples:
     util_group.add_argument(
         "--config-file",
         help="Path to configuration file (default: WIREWITNESS_CONFIG_FILE env var)",
-        default=None
+        default=None,
     )
 
     return parser
+
 
 def parse_args(args=None):
     """Parse command-line arguments.

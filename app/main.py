@@ -13,9 +13,10 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+
 def main():
     args = parse_args()
-    
+
     if args.log_level:
         logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
 
@@ -24,15 +25,16 @@ def main():
     if config_file:
         logger.info("loading config from file %s", config_file)
         config = ConfigLoader.load_file(config_file)
-    
+
     config.load(args)
-    
+
     scheduler = create_scheduler(config)
     if scheduler is None:
         logger.error("unable to create scheduler")
         sys.exit(1)
 
     scheduler.start()
+
 
 if __name__ == "__main__":
     main()

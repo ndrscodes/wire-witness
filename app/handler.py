@@ -7,9 +7,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class SubscriberInterface:
     def update(self, data, id: str | None = None):
         pass
+
 
 class LogHandler(SubscriberInterface):
     def update(self, data, id: str | None = None):
@@ -17,6 +19,7 @@ class LogHandler(SubscriberInterface):
             logger.debug("new measurement collected for test %s: %s", data)
         else:
             logger.debug("new measurement collected: %s", data)
+
 
 class TaskHandler:
     subscribers: list
@@ -32,14 +35,18 @@ class TaskHandler:
 
     def unsubscribe(self, subscriber: SubscriberInterface):
         self.subscribers.remove(subscriber)
-    
+
     def execute(self):
         data = self.prober.probe()
         for subscriber in self.subscribers:
             subscriber.update(data, self.id)
-    
+
+
 class InfluxHandler(SubscriberInterface):
     def __init__(self, influx_client: InfluxClient):
         self.client = influx_client
-    def update(self, data: IperfResult | SpeedtestResult | PingResult, id: str | None = None):
+
+    def update(
+        self, data: IperfResult | SpeedtestResult | PingResult, id: str | None = None
+    ):
         self.client.push(data, id)

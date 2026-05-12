@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Self
 from errors import ErrorMixin
 
+
 @dataclass
 class Timestamp:
     time: str = ""
@@ -15,6 +16,7 @@ class Timestamp:
             timesecs=data.get("timesecs", 0),
             timemillisecs=data.get("timemillisecs", 0),
         )
+
 
 @dataclass
 class ConnectionInfo:
@@ -33,6 +35,7 @@ class ConnectionInfo:
             remote_host=data.get("remote_host", ""),
             remote_port=data.get("remote_port", 0),
         )
+
 
 @dataclass
 class TestStartConfig:
@@ -72,6 +75,7 @@ class TestStartConfig:
             gro=data.get("gro", 0),
         )
 
+
 @dataclass
 class StartInfo:
     connected: list[ConnectionInfo] = field(default_factory=list)
@@ -105,6 +109,7 @@ class StartInfo:
             rcv_buf_actual=data.get("rcvbuf_actual", 0),
             test_start=TestStartConfig.from_dict(data.get("test_start", {})),
         )
+
 
 @dataclass
 class StreamIntervalData:
@@ -144,6 +149,7 @@ class StreamIntervalData:
             sender=data.get("sender", False),
         )
 
+
 @dataclass
 class Sum:
     start: float = 0.0
@@ -164,6 +170,7 @@ class Sum:
             sender=data.get("sender", False),
         )
 
+
 @dataclass
 class SentSum(Sum):
     retransmits: int = 0
@@ -179,6 +186,7 @@ class SentSum(Sum):
             sender=data.get("sender", False),
             retransmits=data.get("retransmits", 0),
         )
+
 
 @dataclass
 class IntervalSum(Sum):
@@ -196,6 +204,7 @@ class IntervalSum(Sum):
             omitted=data.get("omitted", False),
         )
 
+
 @dataclass
 class Interval:
     streams: list[StreamIntervalData] = field(default_factory=list)
@@ -207,6 +216,7 @@ class Interval:
             streams=[StreamIntervalData.from_dict(s) for s in data.get("streams", [])],
             sum=IntervalSum.from_dict(data.get("sum", {})),
         )
+
 
 @dataclass
 class StreamEndSender:
@@ -244,6 +254,7 @@ class StreamEndSender:
             sender=data.get("sender", False),
         )
 
+
 @dataclass
 class StreamEndReceiver:
     socket: int = 0
@@ -266,6 +277,7 @@ class StreamEndReceiver:
             sender=data.get("sender", False),
         )
 
+
 @dataclass
 class StreamEnd:
     sender: StreamEndSender = field(default_factory=StreamEndSender)
@@ -277,6 +289,7 @@ class StreamEnd:
             sender=StreamEndSender.from_dict(data.get("sender", {})),
             receiver=StreamEndReceiver.from_dict(data.get("receiver", {})),
         )
+
 
 @dataclass
 class EndInfo:
@@ -293,6 +306,7 @@ class EndInfo:
             sum_received=Sum.from_dict(data.get("sum_received", {})),
             cpu_utilization_percent=data.get("cpu_utilization_percent", {}),
         )
+
 
 @dataclass
 class IperfResult(ErrorMixin):

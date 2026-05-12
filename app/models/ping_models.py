@@ -3,6 +3,7 @@ from typing import Optional, Self
 
 from errors import ErrorMixin
 
+
 @dataclass
 class PingResult(ErrorMixin):
     packet_loss: float = 0.0

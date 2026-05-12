@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Self
 from errors import ErrorMixin
 
+
 @dataclass
 class PingLatency:
     iqm: float = 0.0
@@ -17,6 +18,7 @@ class PingLatency:
             high=data.get("high", 0.0),
             jitter=data.get("jitter", 0.0),
         )
+
 
 @dataclass
 class PingInfo:
@@ -34,6 +36,7 @@ class PingInfo:
             high=data.get("high", 0.0),
         )
 
+
 @dataclass
 class DownloadLatency:
     iqm: float = 0.0
@@ -49,6 +52,7 @@ class DownloadLatency:
             high=data.get("high", 0.0),
             jitter=data.get("jitter", 0.0),
         )
+
 
 @dataclass
 class DownloadInfo:
@@ -66,6 +70,7 @@ class DownloadInfo:
             latency=DownloadLatency.from_dict(data.get("latency", {})),
         )
 
+
 @dataclass
 class UploadLatency:
     iqm: float = 0.0
@@ -82,6 +87,7 @@ class UploadLatency:
             jitter=data.get("jitter", 0.0),
         )
 
+
 @dataclass
 class UploadInfo:
     bandwidth: int = 0
@@ -97,6 +103,7 @@ class UploadInfo:
             elapsed=data.get("elapsed", 0),
             latency=UploadLatency.from_dict(data.get("latency", {})),
         )
+
 
 @dataclass
 class InterfaceInfo:
@@ -115,6 +122,7 @@ class InterfaceInfo:
             is_vpn=data.get("isVpn", False),
             external_ip=data.get("externalIp", ""),
         )
+
 
 @dataclass
 class ServerInfo:
@@ -138,6 +146,7 @@ class ServerInfo:
             ip=data.get("ip", ""),
         )
 
+
 @dataclass
 class ResultInfo:
     id: str = ""
@@ -151,6 +160,7 @@ class ResultInfo:
             url=data.get("url", ""),
             persisted=data.get("persisted", False),
         )
+
 
 @dataclass
 class SpeedtestResult(ErrorMixin):
