@@ -6,6 +6,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 [![InfluxDB](https://img.shields.io/badge/InfluxDB-3.x-orange?style=for-the-badge&logo=influxdb)](https://www.influxdata.com/)
 [![Grafana](https://img.shields.io/badge/Grafana-Ready-purple?style=for-the-badge&logo=grafana)](https://grafana.com/)
+[![Validation](https://github.com/ndrscodes/wire-witness/actions/workflows/validate.yml/badge.svg?event=push)](https://github.com/ndrscodes/wire-witness/actions/workflows/validate.yml)
+[![Docker](https://github.com/ndrscodes/wire-witness/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/ndrscodes/wire-witness/actions/workflows/release.yml)
 
 > Automated network performance monitoring with InfluxDB & Grafana — track your ISP speeds, internal bandwidth, and network uptime with beautiful dashboards.
 
