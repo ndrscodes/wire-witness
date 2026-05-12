@@ -1,11 +1,11 @@
 # WireWitness
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker)](https://docs.docker.com/get-started/)
-[![GitHub Container](https://img.shields.io/badge/GHCR-Published-blue?style=for-the-badge&logo=github)](https://github.com/ndrscodes/wirewitness/pkgs/container/wirewitness)
-[![Python](https://img.shields.io/badge/Python-3.8+-green?style=for-the-badge&logo=python)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-[![InfluxDB](https://img.shields.io/badge/InfluxDB-3.x-orange?style=for-the-badge&logo=influxdb)](https://www.influxdata.com/)
-[![Grafana](https://img.shields.io/badge/Grafana-Ready-purple?style=for-the-badge&logo=grafana)](https://grafana.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=plastic&logo=docker)](https://docs.docker.com/get-started/)
+[![GitHub Container](https://img.shields.io/badge/GHCR-Published-blue?style=plastic&logo=github)](https://github.com/ndrscodes/wirewitness/pkgs/container/wirewitness)
+[![Python](https://img.shields.io/badge/Python-3.8+-green?style=plastic&logo=python)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=plastic)](LICENSE)
+[![InfluxDB](https://img.shields.io/badge/InfluxDB-3.x-orange?style=plastic&logo=influxdb)](https://www.influxdata.com/)
+[![Grafana](https://img.shields.io/badge/Grafana-Ready-purple?style=plastic&logo=grafana)](https://grafana.com/)
 [![Validation](https://github.com/ndrscodes/wire-witness/actions/workflows/validate.yml/badge.svg?event=push)](https://github.com/ndrscodes/wire-witness/actions/workflows/validate.yml)
 [![Docker](https://github.com/ndrscodes/wire-witness/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/ndrscodes/wire-witness/actions/workflows/release.yml)
 
@@ -130,7 +130,7 @@ Note that `speedtest` mentioned here is the official Ookla Speedtest CLI, not th
 
 WireWitness is designed for a variety of network monitoring scenarios. Here are some common use cases:
 
-### 📡 Monitor ISP Performance
+### Monitor ISP Performance
 
 Track your internet download/upload speeds and latency over time to identify patterns and hold your ISP accountable.
 
@@ -139,7 +139,7 @@ Track your internet download/upload speeds and latency over time to identify pat
 - **Build evidence** — Export historical data to support complaints or service disputes
 - **Compare promises vs reality** — See if your "up to X Mbps" plan delivers consistent performance
 
-### 🏠 Monitor Internal Network
+### Monitor Internal Network
 
 Measure bandwidth and latency between devices on your local network using `iperf3`.
 
@@ -148,7 +148,7 @@ Measure bandwidth and latency between devices on your local network using `iperf
 - **Monitor critical services** — Track latency to NAS, servers, and other infrastructure
 - **Validate upgrades** — Verify that new switches, routers, or cabling actually improve performance
 
-### 🟢 Monitor Uptime & Availability
+### Monitor Uptime & Availability
 
 Ping critical services to detect outages and track availability over time.
 
@@ -157,7 +157,7 @@ Ping critical services to detect outages and track availability over time.
 - **Multi-target monitoring** — Monitor multiple hosts simultaneously (Google DNS, Cloudflare, your router, etc.)
 - **Historical trends** — See if a "flaky" connection is getting worse over time
 
-### 🌍 Multi-Site Monitoring
+### Multi-Site Monitoring
 
 Deploy WireWitness at remote locations and have them all report to a central InfluxDB instance.
 
@@ -165,7 +165,7 @@ Deploy WireWitness at remote locations and have them all report to a central Inf
 - **Edge site visibility** — Monitor connectivity at sites you don't have physical access to
 - **Centralized dashboards** — View all locations in a single Grafana dashboard
 
-### 💡 What Metrics Will You Collect?
+### What Metrics Will You Collect?
 
 | Prober | Metrics Collected |
 |--------|------------------|
