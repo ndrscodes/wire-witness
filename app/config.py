@@ -276,27 +276,27 @@ class IPerfConfig(SupportsMerge["IPerfConfig"], ValidationMixin, NamedMixin):
     tasks: list[IPerfTask] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "IPerfConfig":
+    def from_dict(cls, data: dict) -> Self:
         return cls(
             cmd=data.get("cmd", which("iperf3")),
             tasks=[IPerfTask.from_dict(t) for t in data.get("tasks", [])],
         )
 
     @classmethod
-    def from_env(cls) -> "IPerfConfig | None":
+    def from_env(cls) -> Self:
         cmd = os.environ.get("IPERF_CMD") or which("iperf3")
         task = IPerfTask.from_env()
         if task:
-            return IPerfConfig(cmd=cmd, tasks=[task])
-        return IPerfConfig(cmd)
+            return cls(cmd=cmd, tasks=[task])
+        return cls(cmd)
 
     @classmethod
-    def from_cli_args(cls, args) -> "IPerfConfig | None":
+    def from_cli_args(cls, args) -> Self:
         cmd = args.iperf_cmd or which("iperf3")
         task = IPerfTask.from_cli_args(args)
         if task:
-            return IPerfConfig(cmd=cmd, tasks=[task])
-        return IPerfConfig(cmd)
+            return cls(cmd=cmd, tasks=[task])
+        return cls(cmd)
 
     def merge_with(self, other: Self | None) -> Self:
         if not other:
@@ -333,24 +333,24 @@ class SpeedtestTask(
             id=data.get("id", "speedtest"),
         )
 
-    @staticmethod
-    def from_env() -> "SpeedtestTask | None":
+    @classmethod
+    def from_env(cls) -> Self | None:
         cmd = os.environ.get("SPEEDTEST_CMD") or which("speedtest")
         schedule = os.environ.get("SPEEDTEST_CRON_SCHEDULE")
         additional_flags = os.environ.get("SPEEDTEST_ADDITIONAL_FLAGS") or ""
         if cmd and schedule:
-            return SpeedtestTask(schedule, additional_flags, "speedtest")
+            return cls(schedule, additional_flags, "speedtest")
         return None
 
-    @staticmethod
-    def from_cli_args(args) -> "SpeedtestTask | None":
+    @classmethod
+    def from_cli_args(cls, args) -> Self | None:
         cmd = args.speedtest_cmd or which("speedtest")
         schedule = args.speedtest_schedule
         if cmd and schedule:
-            return SpeedtestTask(schedule, "", "speedtest")
+            return cls(schedule, "", "speedtest")
         return None
 
-    def merge_with(self, other: "SpeedtestTask | None") -> "SpeedtestTask":
+    def merge_with(self, other: Self | None) -> Self:
         if other is None:
             return self
 
