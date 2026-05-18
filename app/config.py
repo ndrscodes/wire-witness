@@ -499,18 +499,16 @@ class InfluxConfig(SupportsMerge["InfluxConfig"], ValidationMixin):
         max_retry_time = int(os.environ.get("MAX_RETRY_TIME", str(60 * 60 * 24 * 1000)))
         max_retry_delay = int(os.environ.get("MAX_RETRY_DELAY", "120000"))
 
-        if host and org and token:
-            return cls(
-                host,
-                org,
-                database,
-                token_file,
-                token,
-                retry_interval,
-                max_retry_time,
-                max_retry_delay,
-            )
-        return None
+        return cls(
+            host or "",
+            org or "",
+            database,
+            token_file,
+            token,
+            retry_interval,
+            max_retry_time,
+            max_retry_delay,
+        )
 
     @classmethod
     def from_cli_args(cls, args) -> Self | None:
@@ -531,37 +529,38 @@ class InfluxConfig(SupportsMerge["InfluxConfig"], ValidationMixin):
             args.max_retry_delay if args.max_retry_delay is not None else 120000
         )
 
-        if host and org and token:
-            return cls(
-                host,
-                org,
-                database,
-                token_file,
-                token,
-                retry_interval,
-                max_retry_time,
-                max_retry_delay,
-            )
-        return None
+        return cls(
+            host,
+            org,
+            database,
+            token_file,
+            token,
+            retry_interval,
+            max_retry_time,
+            max_retry_delay,
+        )
 
     def merge_with(self, other: Self | None) -> Self:
         if other is None:
             return self
 
-        if other.host is not None:
+        if other.host:
             self.host = other.host
-        if other.org is not None:
+        if other.org:
             self.org = other.org
-        if other.database is not None:
+        if other.database:
             self.database = other.database
+        print(self.token, other.token)
         if other.token is not None:
             self.token = other.token
+            print("other token")
         if other.retry_interval is not None:
             self.retry_interval = other.retry_interval
         if other.max_retry_time is not None:
             self.max_retry_time = other.max_retry_time
         if other.max_retry_delay is not None:
             self.max_retry_delay = other.max_retry_delay
+
         return self
 
     def validate(self) -> ValidationResult:
@@ -628,6 +627,7 @@ class Config(ValidationMixin):
             self.ping = merge(self.ping, ping)
         if env_influx or cli_influx:
             influx = merge(env_influx, cli_influx)
+            print(influx)
             self.influx = merge(self.influx, influx)
         if env_iperf or cli_iperf:
             iperf = merge(env_iperf, cli_iperf)
